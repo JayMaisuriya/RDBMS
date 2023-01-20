@@ -217,3 +217,170 @@ BEGIN
    <<JUMP>>DBMS_OUTPUT.PUT_LINE('THE FLOW OF EXECUTION JUMPED HERE...');
 END;
   
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+PR-17.1
+
+DECLARE
+  A INT:=10;
+  B INT:=0;
+  ANS INT;
+BEGIN
+  ANS:=A/B;
+  DBMS_OUTPUT.PUT_LINE(' ANSWER OF DIVE' || ANS);
+EXCEPTION
+  WHEN ZERO_DIVIDE THEN
+  DBMS_OUTPUT.PUT_LINE(' DO NOT DIVIDE WITH ZERO');
+END;
+
+
+PR-17.2
+
+DECLARE
+  EID INT:=:ANO;
+  B_NAME VARCHAR2(10);
+  EX_INVALID_ID EXCEPTION;
+BEGIN
+  IF EID <= 0 THEN
+    RAISE EX_INVALID_ID;
+  ELSE
+    SELECT B_NAME INTO B_NAME FROM ACCOUNT
+    WHERE EID=ANO;
+    DBMS_OUTPUT.PUT_LINE('ADDRESS : ' || B_NAME);
+  END IF;
+EXCEPTION
+  WHEN EX_INVALID_ID THEN
+    DBMS_OUTPUT.PUT_LINE('ID MUST BE GREATER THAN ZERO!');
+  WHEN NO_DATA_FOUND THEN
+   DBMS_OUTPUT.PUT_LINE('NO SUCH CUSTOMER!');
+  WHEN OTHERS THEN
+  DBMS_OUTPUT.PUT_LINE('ERROR!');
+END;
+
+
+
+  
+ 
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+PR-16  { IMPLICIT CURSOR }
+
+CREATE TABLE ACCOUNT(ANO INT, BALANCE INT, B_NAME VARCHAR2(10));
+INSERT INTO ACCOUNT VALUES(100,2000,'SACHIN');
+INSERT INTO ACCOUNT VALUES(101,3000,'SURAT');
+INSERT INTO ACCOUNT VALUES(102,4000,'NAVSARI');
+INSERT INTO ACCOUNT VALUES(103,5000,'PALSANA');
+
+
+SELECT * FROM ACCOUNT;
+
+DECLARE
+  BRANCH ACCOUNT.B_NAME%TYPE;
+BEGIN
+  BRANCH:=:BRANCH;
+  UPDATE ACCOUNT SET B_NAME=LOWER(BRANCH) WHERE B_NAME=BRANCH;
+  IF SQL%FOUND THEN
+   DBMS_OUTPUT.PUT_LINE('TOTAL ' || SQL%ROWCOUNT || '  RECORDS ARE UPDATE');
+  ELSE
+   DBMS_OUTPUT.PUT_LINE('GIVEN BRANCH NOT AVAILABLE');
+  END IF;
+END;
+
+
+{ EXPLICIT CURSOR }
+
+DECLARE
+  CURSOR CACC IS SELECT ANO,BALANCE,B_NAME FROM ACCOUNT;
+  NO ACCOUNT.ANO%TYPE;
+  BAL ACCOUNT.BALANCE%TYPE;
+  BRANCH ACCOUNT.B_NAME%TYPE;
+BEGIN
+  OPEN CACC;
+  IF CACC%ISOPEN THEN
+  LOOP
+    FETCH CACC INTO NO,BAL,BRANCH;
+    EXIT WHEN CACC%NOTFOUND;
+    IF BRANCH='VVN' THEN
+      INSERT INTO CACC_VVN VALUES(NO,BAL);
+      DELETE FROM ACCOUNT WHERE ANO=NO;
+    END IF;
+  END LOOP;
+  COMMIT;
+ ELSE  
+   DBMS_OUTPUT.PUT_LINE('CURSOR CAN NOT BE OPEN');
+ END IF;
+END;
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+PR-20
+
+CREATE TRIGGER TRIGGERACC
+BEFORE INSERT
+ON ACCOUNT
+FOR EACH ROW
+BEGIN
+ IF:NEW.BALANCE<0 THEN
+  DBMS_OUTPUT.PUT_LINE('BALANCE IS NEGATIVE...');
+ END IF;
+END;
+
+SELECT * FROM ACCOUNT;
+INSERT INTO ACCOUNT VALUES(104,-1200,'VANZ');
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+PR-18-1
+
+CREATE PROCEDURE SQ(X IN INT, Y OUT INT)
+IS
+BEGIN
+  Y:=SQRT(X);
+END;
+
+DECLARE
+  A INT;
+  B INT;
+BEGIN
+  A:=:A;
+  SQ(A,B);
+  DBMS_OUTPUT.PUT_LINE('SQUARE ROOT : ' || B);
+END;
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+PR-18-2
+
+CREATE PROCEDURE FINDMIN(X IN INT, Y IN INT, Z OUT INT)
+IS
+BEGIN
+  IF X<Y THEN
+    Z:=X;
+  ELSE
+    Z:=Y;
+  END IF;
+END;
+
+DECLARE
+  A INT;
+  B INT;
+  C INT;
+BEGIN
+  A:=:A;
+  B:=:B;
+  FINDMIN(A,B,C);
+    DBMS_OUTPUT.PUT_LINE('MINIMUM NUMBER IS : ' || C);
+END;
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+PR-18-3
+
+CREATE FUNCTION COUNT1(NAME IN VARCHAR2) RETURN PLS_INTEGER
+IS
+RETVAL PLS_INTEGER;
+BEGIN
+  EXECUTE IMMEDIATE 'SELECT COUNT(*) FROM' || NAME INTO RETVAL;
+  RETURN RETVAL;
+END;
+
+SELECT  COUNT1('ACCOUNT') FROM DUAL;
+SELECT * FROM ACCOUNT;
